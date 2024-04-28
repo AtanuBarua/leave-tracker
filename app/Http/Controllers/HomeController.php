@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\LeaveApproved;
+use App\Mail\LeaveRejected;
 use App\Models\LeaveRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class HomeController extends Controller
 {
@@ -35,7 +38,8 @@ class HomeController extends Controller
         return view('home', compact('leaves', 'leave_types', 'is_admin'));
     }
 
-    public function submitLeave(Request $request) {
+    public function submitLeave(Request $request)
+    {
         $request->validate([
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
@@ -60,10 +64,22 @@ class HomeController extends Controller
         return redirect()->back()->with('message', $message);
     }
 
-    public function leaveDecision(Request $request) {
-        $leave = LeaveRequest::findOrFail($request->leave_id);
-        $leave->status = $request->status;
-        $leave->save();
-        return redirect()->back()->with('message', 'Leave updated successfully');
+    public function leaveDecision(Request $request)
+    {
+        try {
+            $leave = LeaveRequest::findOrFail($request->leave_id);
+            $leave->status = $request->status;
+            $leave->save();
+            if ($request->status == LeaveRequest::STATUS_APPROVED) {
+                Mail::to($leave->user->email)->queue(new LeaveApproved($leave->user->name, auth()->user()->name));
+            } elseif ($request->status == LeaveRequest::STATUS_REJECTED) {
+                Mail::to($leave->user->email)->queue(new LeaveRejected($leave->user->name, auth()->user()->name));
+            }
+            $message = 'Leave updated successfully';
+        } catch (\Throwable $th) {
+            $message = 'Something went wrong';
+        }
+
+        return redirect()->back()->with('message', $message);
     }
 }
