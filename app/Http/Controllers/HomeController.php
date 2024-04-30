@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\LeaveApproved;
-use App\Mail\LeaveRejected;
+use App\Events\LeaveApprovedEvent;
+use App\Events\LeaveRejectedEvent;
 use App\Models\LeaveRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 
 class HomeController extends Controller
 {
@@ -38,9 +37,9 @@ class HomeController extends Controller
         $is_admin = (new User())->isAdmin();
 
         if ($is_admin) {
-            $leaves = LeaveRequest::where('status', LeaveRequest::STATUS_PENDING)->paginate(1);
+            $leaves = LeaveRequest::where('status', LeaveRequest::STATUS_PENDING)->paginate(10);
         } else {
-            $leaves = LeaveRequest::where('user_id', auth()->id())->paginate(1);
+            $leaves = LeaveRequest::where('user_id', auth()->id())->paginate(10);
         }
         return view('home', compact('leaves', 'leave_types', 'is_admin', 'totalRequests', 'pendingRequests', 'approvedRequests', 'rejectedRequests'));
     }
@@ -78,9 +77,9 @@ class HomeController extends Controller
             $leave->status = $request->status;
             $leave->save();
             if ($request->status == LeaveRequest::STATUS_APPROVED) {
-                Mail::to($leave->user->email)->queue(new LeaveApproved($leave->user->name, auth()->user()->name));
+                event(new LeaveApprovedEvent($leave->user->email, $leave->user->name, auth()->user()->name));
             } elseif ($request->status == LeaveRequest::STATUS_REJECTED) {
-                Mail::to($leave->user->email)->queue(new LeaveRejected($leave->user->name, auth()->user()->name));
+                event(new LeaveRejectedEvent($leave->user->email, $leave->user->name, auth()->user()->name));
             }
             $message = 'Leave updated successfully';
         } catch (\Throwable $th) {

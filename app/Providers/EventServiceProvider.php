@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Events\LeaveApprovedEvent;
+use App\Events\LeaveRejectedEvent;
+use App\Listeners\LeaveApprovedEmailListener;
+use App\Listeners\LeaveRejectedEmailListener;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -18,6 +22,14 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+
+        LeaveApprovedEvent::class => [
+            LeaveApprovedEmailListener::class
+        ],
+
+        LeaveRejectedEvent::class => [
+            LeaveRejectedEmailListener::class
+        ]
     ];
 
     /**
