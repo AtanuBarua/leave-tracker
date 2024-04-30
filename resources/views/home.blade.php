@@ -3,6 +3,55 @@
 @section('content')
     <div class="container">
         <div class="row justify-content-center">
+            @if ($is_admin)
+            <div class="row">
+
+                  <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-2 mt-4">
+                      <div class="inforide">
+                        <div class="row">
+                          <div class="fontsty">
+                              <h4>Total Request</h4>
+                              <h2>{{$totalRequests}}</h2>
+                          </div>
+                        </div>
+                      </div>
+                  </div>
+
+                  <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-2 mt-4">
+                      <div class="inforide">
+                        <div class="row">
+                          <div class="fontsty">
+                              <h4>Pending Request</h4>
+                              <h2>{{$pendingRequests}}</h2>
+                          </div>
+                        </div>
+                      </div>
+                  </div>
+
+                  <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-2 mt-4">
+                      <div class="inforide">
+                        <div class="row">
+                          <div class="fontsty">
+                              <h4>Approved Request</h4>
+                              <h2>{{$approvedRequests}}</h2>
+                          </div>
+                        </div>
+                      </div>
+                  </div>
+                  <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-2 mt-4">
+                    <div class="inforide">
+                      <div class="row">
+                        <div class="fontsty">
+                            <h4>Rejected Request</h4>
+                            <h2>{{$rejectedRequests}}</h2>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="m-4"></div>
+            @endif
             <div>
                 @if ($errors->any())
                     <div class="alert alert-danger">
@@ -64,6 +113,9 @@
                         @endforelse
                     </tbody>
                 </table>
+                <div class="mt-4">
+                    {{$leaves->links()}}
+                </div>
             </div>
         </div>
     </div>

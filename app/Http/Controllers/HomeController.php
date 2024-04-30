@@ -28,14 +28,21 @@ class HomeController extends Controller
      */
     public function index()
     {
+        $leaveRequests = LeaveRequest::get();
+        $totalRequests = count($leaveRequests);
+        $pendingRequests = $leaveRequests->where('status', LeaveRequest::STATUS_PENDING)->count();
+        $approvedRequests = $leaveRequests->where('status', LeaveRequest::STATUS_APPROVED)->count();
+        $rejectedRequests = $leaveRequests->where('status', LeaveRequest::STATUS_REJECTED)->count();
+
         $leave_types = LeaveRequest::TYPES;
-        if (auth()->user()->user_type == User::USER_TYPE_ADMIN) {
-            $leaves = LeaveRequest::where('status', LeaveRequest::STATUS_PENDING)->get();
-        } elseif (auth()->user()->user_type == User::USER_TYPE_EMPLOYEE) {
-            $leaves = LeaveRequest::where('user_id', auth()->id())->get();
-        }
         $is_admin = (new User())->isAdmin();
-        return view('home', compact('leaves', 'leave_types', 'is_admin'));
+
+        if ($is_admin) {
+            $leaves = LeaveRequest::where('status', LeaveRequest::STATUS_PENDING)->paginate(1);
+        } else {
+            $leaves = LeaveRequest::where('user_id', auth()->id())->paginate(1);
+        }
+        return view('home', compact('leaves', 'leave_types', 'is_admin', 'totalRequests', 'pendingRequests', 'approvedRequests', 'rejectedRequests'));
     }
 
     public function submitLeave(Request $request)
